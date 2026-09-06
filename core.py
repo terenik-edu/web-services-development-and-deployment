@@ -23,13 +23,14 @@ ARRAY_SEED = 42
 
 def generate_array(size: int, seed: int = ARRAY_SEED) -> List[float]:
     """
-    Generates a reproducible array of pseudo-random numbers.
+    Генерує відтворюваний масив псевдовипадкових чисел.
 
-    A fixed seed ensures that all three stages are fed IDENTICAL input data.
+    Фіксоване зерно гарантує, що на всі три етапи подаються
+    ІДЕНТИЧНІ вхідні дані.
 
-    :param size: number of array elements
-    :param seed: seed of the pseudo-random number generator
-    :return: list of real numbers in the range [0, 1000)
+    :param size: кількість елементів масиву
+    :param seed: зерно генератора псевдовипадкових чисел
+    :return: список дійсних чисел у діапазоні [0, 1000)
     """
     rng = random.Random(seed)
     return [rng.uniform(0.0, 1000.0) for _ in range(size)]
@@ -37,13 +38,13 @@ def generate_array(size: int, seed: int = ARRAY_SEED) -> List[float]:
 
 def process_array(data: List[float]) -> Dict[str, Any]:
     """
-    The basic data processing algorithm studied in the work:
-    calculation of statistical characteristics of the array;
+    Базовий алгоритм обробки даних, що досліджується в роботі:
+    обчислення статистичних характеристик масиву.
 
-    Computational complexity: O(n log n) — due to sorting for the median.
+    Обчислювальна складність: O(n log n) – через сортування для медіани.
 
-    :param data: input array of numbers
-    :return: dictionary with calculation results
+    :param data: вхідний масив чисел
+    :return: словник з результатами обчислень
     """
     n = len(data)
     if n == 0:

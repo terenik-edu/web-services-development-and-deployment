@@ -19,9 +19,12 @@ from metrics import (
     RUNS,
     WARMUP,
     summarize,
+    resource_snapshot,
+    resource_delta,
     save_raw,
     save_summary,
     print_table,
+    print_resources,
 )
 
 STAGE = "stage1"
@@ -29,7 +32,7 @@ line_length = 104
 
 
 def print_environment() -> None:
-    """Виводить параметри середовища — для протоколу експерименту."""
+    """Виводить параметри середовища – для протоколу експерименту."""
     print("-" * line_length)
     print("СЕРЕДОВИЩЕ ВИКОНАННЯ ЕКСПЕРИМЕНТУ")
     print("-" * line_length)
@@ -47,13 +50,17 @@ def run_scale(scale_name: str, size: int) -> Tuple[Dict, List[float]]:
 
     :param scale_name: умовна назва масштабу (small / medium / large)
     :param size: кількість елементів масиву
-    :return: словник зведених метрик
+    :return: словник зведених метрик та список окремих замірів затримки
     """
     data = generate_array(size)
 
     # Прогрів: перші запуски спотворені кешуванням та розігрівом інтерпретатора
     for _ in range(WARMUP):
         process_array(data)
+
+    # Зріз ресурсів знімається поза таймером кожного запуску,
+    # тому не впливає на виміряну затримку
+    res_before = resource_snapshot()
 
     latencies = []
     for _ in range(RUNS):
@@ -62,19 +69,23 @@ def run_scale(scale_name: str, size: int) -> Tuple[Dict, List[float]]:
         elapsed_ns = time.perf_counter_ns() - start
         latencies.append(elapsed_ns / 1_000_000.0)  # наносекунди -> мілісекунди
 
+    res_after = resource_snapshot()
+
     stats = summarize(latencies)
     stats.update({
         "stage": STAGE,
         "scale": scale_name,
         "size": size
     })
+    # Витрати ресурсів на всю серію з RUNS запусків
+    stats.update(resource_delta(res_before, res_after))
     return stats, latencies
 
 
 def main() -> None:
     print()
     print("#" * line_length)
-    print("ЕТАП 1. МОДЕЛЬ «CLUSTER / GRID COMPUTING» — ПРЯМЕ ВИКОНАННЯ (DIRECT EXECUTION)")
+    print("ЕТАП 1. МОДЕЛЬ «CLUSTER / GRID COMPUTING» – ПРЯМЕ ВИКОНАННЯ (DIRECT EXECUTION)")
     print("#" * line_length)
     print_environment()
 
@@ -82,7 +93,7 @@ def main() -> None:
     raw_rows = []
 
     for scale_name, size in DATA_SCALES.items():
-        print(f"[+] Сценарій '{scale_name}' — масив на {size} елементів... ", end="", flush=True)
+        print(f"[+] Сценарій '{scale_name}' – масив на {size} елементів... ", end="", flush=True)
         stats, latencies = run_scale(scale_name, size)
         print("готово")
         summary_rows.append(stats)
@@ -95,7 +106,8 @@ def main() -> None:
                 "latency_ms": round(ms, 6)
             })
 
-    print_table("ЕТАП 1 — ЗВЕДЕНІ РЕЗУЛЬТАТИ (базова лінія T_compute)", summary_rows)
+    print_table("ЕТАП 1 – ЗВЕДЕНІ РЕЗУЛЬТАТИ (базова лінія T_compute)", summary_rows)
+    print_resources(f"ЕТАП 1 – ВИКОРИСТАННЯ РЕСУРСІВ (на серію з {RUNS} запусків)", summary_rows)
 
     p1 = save_raw(STAGE, raw_rows)
     p2 = save_summary(STAGE, summary_rows)
