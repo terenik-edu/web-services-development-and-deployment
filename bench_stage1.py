@@ -99,7 +99,7 @@ def main() -> None:
 
     p1 = save_raw(STAGE, raw_rows)
     p2 = save_summary(STAGE, summary_rows)
-    print(f"\nСирі вимірювання : {p1}")
+    print(f"Сирі вимірювання : {p1}")
     print(f"Зведені метрики  : {p2}")
 
 

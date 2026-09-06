@@ -1,8 +1,8 @@
 """
-metrics.py — спільний модуль обробки та збереження результатів вимірювань.
+metrics.py - is a common module for processing and storing measurement results.
 
-Використовується всіма трьома етапами експерименту, щоб метрики
-рахувалися за єдиною методикою і були порівнюваними між собою.
+It is used by all three stages of the experiment so that metrics
+are calculated using a single methodology and are comparable with each other.
 """
 
 import csv
