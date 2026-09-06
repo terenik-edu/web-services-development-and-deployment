@@ -203,3 +203,31 @@ def print_resources(title: str, rows: List[Dict[str, Any]]) -> None:
               f"{r['max_rss_mb']:>18.2f}")
     print("=" * 104)
     print()
+
+
+def print_breakdown(title: str, rows: List[Dict[str, Any]]) -> None:
+    """
+    Виводить розклад повного часу запиту на складові (для скріншота у звіт).
+
+    Це головна аналітична таблиця Етапів 2 і 3: видно, яка частина часу
+    припадає на корисне обчислення, а яка – на накладні витрати архітектури
+    (транспорт, розбір та формування JSON).
+
+    :param title: заголовок таблиці
+    :param rows: рядки зі зведеними метриками етапу
+    """
+    print()
+    print("=" * 104)
+    print(title)
+    print("=" * 104)
+    header = (f"{'Обсяг':<10}{'T_total,мс':>12}{'T_server,мс':>13}{'Десеріал.,мс':>14}"
+              f"{'Обчисл.,мс':>12}{'Серіал.,мс':>12}{'Транспорт,мс':>14}{'Тіло,КБ':>11}")
+    print(header)
+    print("-" * 104)
+    for r in rows:
+        print(f"{r['scale']:<10}{r['mean_ms']:>12.3f}{r['server_total_ms']:>13.3f}"
+              f"{r['server_deserialize_ms']:>14.3f}{r['server_compute_ms']:>12.3f}"
+              f"{r['server_serialize_ms']:>12.3f}{r['transport_ms']:>14.3f}"
+              f"{r['request_bytes'] / 1024.0:>11.1f}")
+    print("=" * 104)
+    print()

@@ -28,20 +28,20 @@ from metrics import (
 )
 
 STAGE = "stage1"
-line_length = 104
+LINE_LENGTH = 104
 
 
 def print_environment() -> None:
     """Виводить параметри середовища – для протоколу експерименту."""
-    print("-" * line_length)
+    print("-" * LINE_LENGTH)
     print("СЕРЕДОВИЩЕ ВИКОНАННЯ ЕКСПЕРИМЕНТУ")
-    print("-" * line_length)
+    print("-" * LINE_LENGTH)
     print(f"Операційна система : {platform.system()} {platform.release()}")
     print(f"Архітектура        : {platform.machine()}")
     print(f"Процесор           : {platform.processor() or 'н/д'}")
     print(f"Python             : {platform.python_version()}")
     print(f"Запусків на сценарій: {RUNS} (+ {WARMUP} прогрівальних)")
-    print("-" * line_length)
+    print("-" * LINE_LENGTH)
 
 
 def run_scale(scale_name: str, size: int) -> Tuple[Dict, List[float]]:
@@ -84,9 +84,9 @@ def run_scale(scale_name: str, size: int) -> Tuple[Dict, List[float]]:
 
 def main() -> None:
     print()
-    print("#" * line_length)
+    print("#" * LINE_LENGTH)
     print("ЕТАП 1. МОДЕЛЬ «CLUSTER / GRID COMPUTING» – ПРЯМЕ ВИКОНАННЯ (DIRECT EXECUTION)")
-    print("#" * line_length)
+    print("#" * LINE_LENGTH)
     print_environment()
 
     summary_rows = []
