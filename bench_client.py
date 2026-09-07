@@ -174,6 +174,37 @@ def _mean(rows: List[Dict[str, Any]], key: str) -> float:
     return sum(r[key] for r in rows) / len(rows)
 
 
+def generate_load(session: requests.Session, url: str, seconds: float) -> None:
+    """
+    Створює тривале навантаження на сервіс ПІСЛЯ завершення замірів.
+
+    Потрібне лише Етапу 3: сама серія вимірювань триває близько секунди,
+    а один виклик `docker stats --no-stream` – півтори. За такий час
+    спостерігач не встигає зняти жодного показника, і вимога фіксувати
+    використання ресурсів залишилася б невиконаною.
+
+    Ця фаза в статистику НЕ входить і на результати замірів не впливає:
+    вона виконується після того, як усі метрики вже пораховані та збережені.
+
+    :param session: сесія з постійним з'єднанням
+    :param url: базова адреса сервісу
+    :param seconds: тривалість навантаження в секундах
+    """
+    endpoint = f"{url}/compute"
+    body = json.dumps({"data": generate_array(max(DATA_SCALES.values()))})
+
+    print()
+    print(f"[+] Фаза навантаження: {seconds:.0f} с безперервних запитів.")
+    print("    Саме зараз робіть скріншот живого `docker stats` в іншому терміналі.")
+
+    deadline = time.monotonic() + seconds
+    requests_sent = 0
+    while time.monotonic() < deadline:
+        session.post(endpoint, data=body, headers=HEADERS)
+        requests_sent += 1
+    print(f"    Надіслано запитів: {requests_sent}")
+
+
 def parse_args() -> argparse.Namespace:
     """Розбирає аргументи командного рядка."""
     parser = argparse.ArgumentParser(description="Бенчмарк веб-сервісу для Етапів 2 і 3 лабораторної роботи 1")
@@ -187,6 +218,13 @@ def parse_args() -> argparse.Namespace:
         choices=["stage2", "stage3"],
         default="stage2",
         help="позначка етапу для файлів результатів"
+    )
+    parser.add_argument(
+        "--load-seconds",
+        type=float,
+        default=0.0,
+        help="тривалість фази навантаження після замірів, секунди "
+             "(потрібна Етапу 3 для знімання docker stats; 0 – вимкнено)"
     )
     return parser.parse_args()
 
@@ -223,15 +261,20 @@ def main() -> None:
             summary_rows.append(stats)
             raw_rows.extend(per_request)
 
-    stage_number = "2" if stage == "stage2" else "3"
-    print_table(f"ЕТАП {stage_number} – ЗВЕДЕНІ РЕЗУЛЬТАТИ (T_total з боку клієнта)", summary_rows)
-    print_breakdown(f"ЕТАП {stage_number} – РОЗКЛАД ПОВНОГО ЧАСУ ЗАПИТУ НА СКЛАДОВІ", summary_rows)
-    print_resources(f"ЕТАП {stage_number} – ВИКОРИСТАННЯ РЕСУРСІВ ПРОЦЕСОМ СЕРВІСУ (на серію з {RUNS} запитів)", summary_rows)
+        stage_number = "2" if stage == "stage2" else "3"
+        print_table(f"ЕТАП {stage_number} – ЗВЕДЕНІ РЕЗУЛЬТАТИ (T_total з боку клієнта)", summary_rows)
+        print_breakdown(f"ЕТАП {stage_number} – РОЗКЛАД ПОВНОГО ЧАСУ ЗАПИТУ НА СКЛАДОВІ", summary_rows)
+        print_resources(f"ЕТАП {stage_number} – ВИКОРИСТАННЯ РЕСУРСІВ ПРОЦЕСОМ СЕРВІСУ (на серію з {RUNS} запитів)", summary_rows)
 
-    p1 = save_raw(stage, raw_rows)
-    p2 = save_summary(stage, summary_rows)
-    print(f"Сирі вимірювання : {p1}")
-    print(f"Зведені метрики  : {p2}")
+        p1 = save_raw(stage, raw_rows)
+        p2 = save_summary(stage, summary_rows)
+        print(f"Сирі вимірювання : {p1}")
+        print(f"Зведені метрики  : {p2}")
+
+        # Навантаження створюється в останню чергу – коли всі метрики вже
+        # збережені, тож перерваний прогін не втрачає результатів
+        if args.load_seconds > 0:
+            generate_load(session, url, args.load_seconds)
 
 
 if __name__ == "__main__":
