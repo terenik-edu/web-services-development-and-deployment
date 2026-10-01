@@ -19,6 +19,13 @@ DATA_SCALES = {
     "large": 10_000,   # ~100 KB
 }
 
+# ЛР2: масштаби більші за вимогою завдання; у коментарях – розмір тіла запиту JSON
+DATA_SCALES_LAB2 = {
+    "small": 1_000,      # ~19 KB
+    "medium": 10_000,    # ~187 KB
+    "large": 100_000,    # ~1,9 MB
+}
+
 RUNS = 100      # кількість вимірюваних запитів на сценарій
 WARMUP = 10     # кількість «прогрівальних» запусків (у статистику не входять)
 
@@ -230,4 +237,33 @@ def print_breakdown(title: str, rows: List[Dict[str, Any]]) -> None:
               f"{r['server_serialize_ms']:>12.3f}{r['transport_ms']:>14.3f}"
               f"{r['request_bytes'] / 1024.0:>11.1f}")
     print("=" * 104)
+    print()
+
+
+def print_overhead(title: str, rows: List[Dict[str, Any]]) -> None:
+    """
+    Виводить порівняння request latency з algorithm latency (ЛР2, для скріншота у звіт).
+
+    Overhead = request latency (mean_ms) − algorithm latency (server_compute_ms);
+    частка у % – від request latency.
+
+    :param title: заголовок таблиці
+    :param rows: зведені рядки з полями як у print_breakdown + overhead_ms
+    """
+    print()
+    print("=" * 121)
+    print(title)
+    print("=" * 121)
+    header = (f"{'Обсяг':<10}{'N елем.':>10}{'Request,мс':>12}{'Algorithm,мс':>14}"
+              f"{'Overhead,мс':>13}{'Overhead,%':>12}{'Десеріал.,мс':>14}"
+              f"{'Серіал.,мс':>12}{'Транспорт,мс':>14}{'Тіло,КБ':>10}")
+    print(header)
+    print("-" * 121)
+    for r in rows:
+        overhead_pct = r["overhead_ms"] / r["mean_ms"] * 100.0 if r["mean_ms"] > 0 else 0.0
+        print(f"{r['scale']:<10}{r['size']:>10}{r['mean_ms']:>12.3f}"
+              f"{r['server_compute_ms']:>14.3f}{r['overhead_ms']:>13.3f}{overhead_pct:>12.1f}"
+              f"{r['server_deserialize_ms']:>14.3f}{r['server_serialize_ms']:>12.3f}"
+              f"{r['transport_ms']:>14.3f}{r['request_bytes'] / 1024.0:>10.1f}")
+    print("=" * 121)
     print()
