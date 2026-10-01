@@ -1,0 +1,4 @@
+# Workstation dependencies: service + benchmark client + report charts.
+-r requirements.txt
+requests==2.34.2
+matplotlib==3.11.1

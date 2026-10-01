@@ -8,11 +8,13 @@
 ```bash
 python3 -m venv .venv
 source .venv/bin/activate
-pip install -r requirements.txt
+pip install -r requirements-dev.txt
 ```
 
 Обчислювальне ядро `core.py` не використовує жодної зовнішньої бібліотеки –
 залежності потрібні лише веб-сервісу, клієнту-бенчмарку та графікам.
+`requirements.txt` містить лише залежності сервісу (їх ставить Azure у ЛР2),
+`requirements-dev.txt` додає до них клієнт-бенчмарк і графіки.
 
 ## Етап 1 – пряме виконання
 
