@@ -1,0 +1,80 @@
+{
+  "info": {
+    "name": "Лабораторна робота 2 – сервіс обчислювальних задач",
+    "description": "Ручна перевірка API service_tasks.py. baseUrl: локально http://127.0.0.1:8000, для Azure – https://<app>.azurewebsites.net. taskId задається вручну (id з відповіді POST /tasks).",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://127.0.0.1:8000", "type": "string" },
+    { "key": "taskId", "value": "1", "type": "string" }
+  ],
+  "item": [
+    {
+      "name": "GET /health",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["health"]
+        }
+      }
+    },
+    {
+      "name": "POST /tasks",
+      "request": {
+        "method": "POST",
+        "header": [
+          { "key": "Content-Type", "value": "application/json" }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n  \"data\": [12.5, 3.0, 47.25, 8.0, 19.75, 31.0, 5.5, 26.0, 14.25, 40.0]\n}",
+          "options": { "raw": { "language": "json" } }
+        },
+        "url": {
+          "raw": "{{baseUrl}}/tasks",
+          "host": ["{{baseUrl}}"],
+          "path": ["tasks"]
+        }
+      }
+    },
+    {
+      "name": "GET /tasks",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tasks",
+          "host": ["{{baseUrl}}"],
+          "path": ["tasks"]
+        }
+      }
+    },
+    {
+      "name": "GET /tasks/{{taskId}}",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tasks/{{taskId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["tasks", "{{taskId}}"]
+        }
+      }
+    },
+    {
+      "name": "DELETE /tasks/{{taskId}}",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/tasks/{{taskId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["tasks", "{{taskId}}"]
+        }
+      }
+    }
+  ]
+}
