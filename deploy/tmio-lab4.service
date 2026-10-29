@@ -1,0 +1,20 @@
+# ЛР4: systemd-юніт сервісу задач на VM Azure (IaaS).
+# Те, що в App Service (ЛР2) робила платформа – запуск після старту VM
+# і перезапуск після збою, – тут налаштовується вручну.
+# __USER__ і __APP_DIR__ підставляє deploy/setup_vm.sh.
+
+[Unit]
+Description=LR4 task service (FastAPI + uvicorn)
+After=network-online.target
+Wants=network-online.target
+
+[Service]
+User=__USER__
+WorkingDirectory=__APP_DIR__
+# Та сама команда запуску, що й Startup Command у ЛР2
+ExecStart=__APP_DIR__/.venv/bin/python -m uvicorn service_tasks:app --host 0.0.0.0 --port 8000 --workers 1 --log-level warning
+Restart=on-failure
+RestartSec=2
+
+[Install]
+WantedBy=multi-user.target
