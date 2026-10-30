@@ -15,6 +15,8 @@ echo "[2/4] Віртуальне середовище і залежності с
 python3 -m venv "$APP_DIR/.venv"
 "$APP_DIR/.venv/bin/pip" install -q --upgrade pip
 "$APP_DIR/.venv/bin/pip" install -q -r "$APP_DIR/requirements.txt"
+# Генератор навантаження працює на тій самій VM – потрібна бібліотека requests
+"$APP_DIR/.venv/bin/pip" install -q "$(grep '^requests' "$APP_DIR/requirements-dev.txt")"
 
 echo "[3/4] systemd-юніт $SERVICE"
 sed -e "s|__USER__|$USER|g" -e "s|__APP_DIR__|$APP_DIR|g" \
@@ -27,5 +29,10 @@ for _ in $(seq 1 15); do
     curl -fsS http://127.0.0.1:8000/health && echo && break
     sleep 1
 done
-"$APP_DIR/.venv/bin/python" --version
 systemctl --no-pager status "$SERVICE" | head -n 5
+
+echo "Середовище VM:"
+lsb_release -ds
+lscpu | grep -E '^(Model name|CPU\(s\))'
+free -m | head -n 2
+"$APP_DIR/.venv/bin/python" --version
